@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <rect x="2" y="2" width="60" height="60" rx="4" fill="#0f0f0f" stroke="#e0a32e" stroke-width="1.5"/>
+  <text x="32" y="26" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="600" fill="#e0a32e" text-anchor="middle" letter-spacing="1">SUB</text>
+  <text x="32" y="38" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="600" fill="#e0a32e" text-anchor="middle" letter-spacing="1">SPACE</text>
+  <rect x="12" y="46" width="40" height="2" fill="#e0a32e"/>
+  <rect x="12" y="50" width="24" height="2" fill="#e0a32e" opacity="0.5"/>
+</svg>

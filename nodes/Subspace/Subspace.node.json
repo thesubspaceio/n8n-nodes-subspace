@@ -1,0 +1,18 @@
+{
+	"node": "n8n-nodes-subspace.subspace",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Sales", "Marketing", "IT Ops"],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://github.com/subspace-io/n8n-nodes-subspace?tab=readme-ov-file#credentials"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://github.com/subspace-io/n8n-nodes-subspace?tab=readme-ov-file"
+			}
+		]
+	}
+}
