@@ -13,20 +13,13 @@
 - GitHub Actions workflows (`ci.yml` + `publish.yml`) kept from starter — already set up for OIDC provenance (May 1 2026 requirement)
 - `npx n8n-node lint` ✓, `npx n8n-node build` ✓
 
-## BEFORE PUSH — assumptions to confirm/replace
+## Placeholders — ALL RESOLVED
 
-These fields in the repo contain my best-guess placeholders. Verify each before pushing.
-
-| File | Placeholder | Confirm/Replace |
-|---|---|---|
-| `package.json` | `"email": "hello@thesubspace.io"` | Real support email |
-| `package.json` | `"url": "git+https://github.com/subspace-io/n8n-nodes-subspace.git"` | Actual GitHub org/user + repo name |
-| `package.json` | `"bugs.url": "...subspace-io/n8n-nodes-subspace/issues"` | Same as repo |
-| `nodes/Subspace/Subspace.node.json` | All `subspace-io/n8n-nodes-subspace` refs | Same as repo |
-| `credentials/SubspaceApi.credentials.ts` | `documentationUrl: 'https://www.thesubspace.io/docs/api'` | Confirm this URL exists and is public |
-| `README.md` | Repo URL, docs URL, support email | Match confirmed values |
-
-`grep -r "subspace-io" .` finds all references if org differs.
+| Field | Value |
+|---|---|
+| GitHub org | `thesubspaceio` (created 2026-04-21 14:37 UTC) |
+| Support email | `dev@thesubspace.io` |
+| Docs URL | `https://www.thesubspace.io/docs/api` (confirmed live) |
 
 ## Next steps — in order
 
@@ -34,7 +27,7 @@ These fields in the repo contain my best-guess placeholders. Verify each before 
 
 ```bash
 cd /Users/vivek/Antigravity/Code/n8n-nodes-subspace
-gh repo create <org>/n8n-nodes-subspace --public --source=. --remote=origin --description="n8n community node for Subspace — operational company intelligence"
+gh repo create thesubspaceio/n8n-nodes-subspace --public --source=. --remote=origin --description="n8n community node for Subspace — operational company intelligence"
 git push -u origin main
 ```
 
@@ -42,10 +35,10 @@ git push -u origin main
 
 On npmjs.com (logged in as package owner):
 
-1. Publish once manually to claim the package name: `npm publish --access public` (skip if you want the workflow to do the very first publish)
+1. Publish once manually to claim the package name: `npm publish --access public` (RECOMMENDED first — squats `n8n-nodes-subspace` before anyone else can)
 2. Package settings → **Publish access** → **Trusted Publishers** → **Add a publisher**:
    - Publisher: **GitHub Actions**
-   - Repository owner: `<org>`
+   - Repository owner: `thesubspaceio`
    - Repository name: `n8n-nodes-subspace`
    - Workflow filename: `publish.yml`
    - Environment: (blank)

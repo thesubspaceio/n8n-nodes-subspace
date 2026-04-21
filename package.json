@@ -17,15 +17,15 @@
 	],
 	"author": {
 		"name": "Subspace",
-		"email": "hello@thesubspace.io",
+		"email": "dev@thesubspace.io",
 		"url": "https://www.thesubspace.io"
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/subspace-io/n8n-nodes-subspace.git"
+		"url": "git+https://github.com/thesubspaceio/n8n-nodes-subspace.git"
 	},
 	"bugs": {
-		"url": "https://github.com/subspace-io/n8n-nodes-subspace/issues"
+		"url": "https://github.com/thesubspaceio/n8n-nodes-subspace/issues"
 	},
 	"engines": {
 		"node": ">=22"

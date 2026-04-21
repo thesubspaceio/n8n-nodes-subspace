@@ -93,11 +93,11 @@ Published templates coming to [n8n.io/workflows](https://n8n.io/workflows) — s
 
 ## Rate limits
 
-60 requests / minute during beta. Contact [hello@thesubspace.io](mailto:hello@thesubspace.io) if you need higher throughput.
+60 requests / minute during beta. Contact [dev@thesubspace.io](mailto:dev@thesubspace.io) if you need higher throughput.
 
 ## Support
 
-- Issues: [github.com/subspace-io/n8n-nodes-subspace/issues](https://github.com/subspace-io/n8n-nodes-subspace/issues)
+- Issues: [github.com/thesubspaceio/n8n-nodes-subspace/issues](https://github.com/thesubspaceio/n8n-nodes-subspace/issues)
 - API docs: [thesubspace.io/docs/api](https://www.thesubspace.io/docs/api)
 - Clay integration: [thesubspace.io/integrations/clay](https://www.thesubspace.io/integrations/clay)
 
