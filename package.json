@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-subspace",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "n8n community node for Subspace — operational company intelligence from DNS, HTTP, and ATS forensics. 88+ fields per domain with zero LinkedIn dependency.",
 	"license": "MIT",
 	"homepage": "https://www.thesubspace.io",
