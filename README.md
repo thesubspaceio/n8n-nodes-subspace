@@ -84,12 +84,17 @@ See the full response schema at [thesubspace.io/docs/api](https://www.thesubspac
 
 ## Example workflows
 
-- **Enrich Clay exports** — filter lead lists by `quality_score >= 60` before pushing to outbound
-- **HubSpot lifecycle sync** — trigger on new company, enrich with Subspace, write scores to contact properties
-- **Apollo + Subspace** — complement firmographic enrichment with operational signals; skip companies with `ghost_job_rate > 60`
-- **Watchlist distress alerts** — daily re-check of CRM accounts, Slack alert on `hiring_verdict` change
+Ready-to-import templates live in [`workflows/`](./workflows/):
 
-Published templates coming to [n8n.io/workflows](https://n8n.io/workflows) — search "Subspace".
+- **[Enrich a Single Domain](./workflows/01-enrich-single-domain.json)** — starter / smoke test. Use this first to verify install + credential.
+- **[Filter Companies by Quality Score](./workflows/02-filter-by-quality-score.json)** — iterate a domain list, enrich each, filter by `quality_score >= 60`. Drop in Clay / Apollo / Sheets list sources.
+
+More on the way:
+- **HubSpot lifecycle sync** — trigger on new company, enrich, write scores back to contact properties
+- **Apollo + Subspace** — firmographic + operational filter; skip companies with `ghost_job_rate > 60`
+- **Watchlist distress alerts** — daily re-check of CRM accounts, Slack on `hiring_verdict` change
+
+Templates also published on [n8n.io/workflows](https://n8n.io/workflows) — search "Subspace".
 
 ## Rate limits
 

@@ -1,0 +1,57 @@
+{
+  "name": "Subspace — Enrich a Single Domain",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "888b3a6e-df02-45bd-8a89-4e11144f4dc3",
+      "name": "When clicking 'Test workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "resource": "company",
+        "operation": "enrich",
+        "domain": "stripe.com"
+      },
+      "id": "8a1c3a41-4c52-49f0-ab65-f8af849c4c09",
+      "name": "Subspace — Enrich",
+      "type": "n8n-nodes-subspace.subspace",
+      "typeVersion": 1,
+      "position": [480, 300],
+      "credentials": {
+        "subspaceApi": {
+          "id": "REPLACE_ME",
+          "name": "Subspace API account"
+        }
+      },
+      "notes": "Returns 88+ operational signals for the input domain. Replace 'stripe.com' with any company you want to enrich."
+    }
+  ],
+  "connections": {
+    "When clicking 'Test workflow'": {
+      "main": [
+        [
+          {
+            "node": "Subspace — Enrich",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": [
+    { "name": "subspace" },
+    { "name": "enrichment" },
+    { "name": "starter" }
+  ]
+}

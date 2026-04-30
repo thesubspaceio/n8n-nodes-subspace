@@ -1,0 +1,121 @@
+{
+  "name": "Subspace — Filter Companies by Quality Score",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "94e7c298-c07a-4258-a9f6-cd786b410a2b",
+      "name": "When clicking 'Test workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [180, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Sample input — replace this with output from your CRM, Clay export, Apollo list, etc.\n// Each item should contain a `domain` field (apex form, no www).\nreturn [\n  { json: { domain: 'stripe.com' } },\n  { json: { domain: 'figma.com' } },\n  { json: { domain: 'notion.so' } },\n  { json: { domain: 'datadog.com' } },\n  { json: { domain: 'vercel.com' } }\n];"
+      },
+      "id": "29fa9fae-da27-4ea9-b439-6df31abb9327",
+      "name": "Sample Domain List",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 300],
+      "notes": "Replace this Code node with whatever produces your domain list — a Google Sheets read, a Clay webhook, an Apollo export, an HTTP request, etc. Each item must have a `domain` field."
+    },
+    {
+      "parameters": {
+        "resource": "company",
+        "operation": "enrich",
+        "domain": "={{ $json.domain }}"
+      },
+      "id": "3ba740eb-2ecd-443c-8ef3-f061edeb4d81",
+      "name": "Subspace — Enrich",
+      "type": "n8n-nodes-subspace.subspace",
+      "typeVersion": 1,
+      "position": [620, 300],
+      "credentials": {
+        "subspaceApi": {
+          "id": "REPLACE_ME",
+          "name": "Subspace API account"
+        }
+      },
+      "notes": "Subspace runs once per input item, automatically. 60 req/min during beta — chain a Wait node before this if your list is large."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "959020bf-5d9b-4109-96de-9eb5f9970c1c",
+              "leftValue": "={{ $json.quality_score }}",
+              "rightValue": 60,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "87ccbda7-292d-4408-87c2-827adf3123e9",
+      "name": "Quality Score >= 60",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [860, 300],
+      "notes": "Tweak the threshold or swap the field. Common alternatives:\n- ghost_job_rate <= 30 (skip ghost-heavy companies)\n- hiring_actively == true (only actively-hiring)\n- it_infrastructure_tier == 'Enterprise' (target enterprise stack)"
+    }
+  ],
+  "connections": {
+    "When clicking 'Test workflow'": {
+      "main": [
+        [
+          {
+            "node": "Sample Domain List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sample Domain List": {
+      "main": [
+        [
+          {
+            "node": "Subspace — Enrich",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Subspace — Enrich": {
+      "main": [
+        [
+          {
+            "node": "Quality Score >= 60",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": [
+    { "name": "subspace" },
+    { "name": "enrichment" },
+    { "name": "lead-filtering" },
+    { "name": "sales-ops" }
+  ]
+}
