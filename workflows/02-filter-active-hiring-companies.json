@@ -1,5 +1,5 @@
 {
-  "name": "Subspace — Filter Companies by Quality Score",
+  "name": "Subspace — Filter Active-Hiring Companies for Outbound",
   "nodes": [
     {
       "parameters": {},
@@ -50,8 +50,18 @@
           "conditions": [
             {
               "id": "959020bf-5d9b-4109-96de-9eb5f9970c1c",
-              "leftValue": "={{ $json.quality_score }}",
-              "rightValue": 60,
+              "leftValue": "={{ $json.hiring_actively }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "b5df515d-e23b-4cde-a1cd-683ef034bda7",
+              "leftValue": "={{ $json.total_jobs }}",
+              "rightValue": 5,
               "operator": {
                 "type": "number",
                 "operation": "gte"
@@ -63,11 +73,11 @@
         "options": {}
       },
       "id": "87ccbda7-292d-4408-87c2-827adf3123e9",
-      "name": "Quality Score >= 60",
+      "name": "Active Hiring + 5+ Jobs",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [860, 300],
-      "notes": "Tweak the threshold or swap the field. Common alternatives:\n- ghost_job_rate <= 30 (skip ghost-heavy companies)\n- hiring_actively == true (only actively-hiring)\n- it_infrastructure_tier == 'Enterprise' (target enterprise stack)"
+      "notes": "Filters: actively hiring AND total_jobs >= 5.\n\nCommon alternatives (all real fields):\n- operating_status == 'active' (DNS resolves + signals)\n- confidence == 'high' (high-evidence enrichment only)\n- has_compliance_program == true (SOC2 / HIPAA / trust center)\n- has_enterprise_sso == true (Okta / Azure AD detected)\n- cdn_enterprise == true (enterprise infrastructure)\n- recent_funding == true (funding signal in last filings)\n- is_spending_on_ads == true (active demand-gen)\n\nCombine with AND/OR by adding more conditions in this IF node."
     }
   ],
   "connections": {
@@ -97,7 +107,7 @@
       "main": [
         [
           {
-            "node": "Quality Score >= 60",
+            "node": "Active Hiring + 5+ Jobs",
             "type": "main",
             "index": 0
           }

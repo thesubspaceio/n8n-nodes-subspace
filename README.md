@@ -4,14 +4,18 @@ Community n8n node for [Subspace](https://www.thesubspace.io) — operational co
 
 ## What you get
 
-For any company domain, Subspace returns fields including:
+For any company domain, Subspace returns ~90 operational fields including:
 
-- **Operating status** — active, inactive, acquired, hiring paused
-- **Hiring signals** — ghost job rate, fresh jobs, total jobs, ATS provider, hiring verdict
-- **8 cost-center scores** (0–100) — IT infrastructure, engineering & product, sales & marketing, HR & hiring, legal & compliance, finance & RevOps, telecom & remote, corporate development
-- **Enterprise stack booleans** — enterprise CDN, WAF, enterprise SSO (Okta/Azure), DMARC enforcement, compliance program (SOC 2 / ISO 27001), enterprise UC (Teams / Zoom Phone), ad spend detected
-- **Revenue & M&A signals** — billing model, recent funding, possible acquisition, SEC filer status
-- **Overall health** — `quality_score` 0–100, `hiring_verdict`
+- **Operating status** — `active`, `slow`, `inactive` plus DNS + ATS confidence
+- **Hiring signals** — `total_jobs`, `fresh_jobs_30d`, `hiring_actively`, `ghost_job_rate`, `ats_provider`
+- **Infrastructure** — `cdn_enterprise`, `waf_active`, `ttfb_fast`, `hsts_active`, `security_posture_mature`
+- **Email security** — `dmarc_enforcing`, `email_provider_enterprise`, `email_security_gateway`
+- **Engineering** — `shipping_actively`, `has_changelog`, `has_status_page`, `npm_high_velocity`, `app_store_presence`
+- **Sales & marketing** — `is_spending_on_ads`, `has_tag_manager`, `international_presence`, `hreflang_markets`
+- **Legal & compliance** — `has_soc2`, `has_hipaa`, `has_compliance_program`, `has_trust_center`, `h1b_filer`, `warn_notices`
+- **Finance** — `billing_model`, `has_pricing_page`, `has_banking_api`
+- **SSO & telecom** — `has_enterprise_sso`, `has_enterprise_uc`, `has_conferencing`
+- **M&A & funding** — `possible_acquisition`, `recent_funding`, `sec_public_filer`, `gov_contractor`
 
 Every field is derived from public, deterministic sources: DNS records, HTTP headers, SSL certificate transparency, government filings (SEC, H-1B, WARN, patents), Common Crawl, and ATS API responses. No LinkedIn scraping, no AI hallucination.
 
@@ -52,7 +56,7 @@ Returns 88+ operational signals for a company domain.
 **Input**
 - `Domain` (string, required) — apex domain (e.g. `stripe.com`). Avoid `www.` or subdomains.
 
-**Output (excerpt)**
+**Output (excerpt — every field shown is verified against the live response)**
 ```json
 {
   "domain": "stripe.com",
@@ -60,23 +64,25 @@ Returns 88+ operational signals for a company domain.
   "operating_status": "active",
   "ats_provider": "greenhouse",
   "company_size": "enterprise",
-  "hiring_actively": true,
+  "company_type": "saas_product",
   "total_jobs": 285,
-  "quality_score": 82,
-  "hiring_verdict": "Healthy",
-  "it_infrastructure_score": 94,
-  "it_infrastructure_tier": "Enterprise",
-  "engineering_product_score": 78,
-  "hr_hiring_score": 65,
+  "fresh_jobs_30d": 47,
+  "hiring_actively": true,
+  "confidence": "high",
   "cdn_enterprise": true,
   "waf_active": true,
   "dmarc_enforcing": true,
   "has_enterprise_sso": true,
-  "is_spending_on_ads": true,
   "has_compliance_program": true,
+  "is_spending_on_ads": true,
+  "shipping_actively": true,
   "billing_model": "saas_payments",
   "possible_acquisition": false,
-  "recent_funding": true
+  "recent_funding": true,
+  "saas_stack_premium": true,
+  "data_freshness": "cached",
+  "credits_consumed": 2,
+  "billed": true
 }
 ```
 
@@ -87,12 +93,12 @@ See the full response schema at [thesubspace.io/docs/api](https://www.thesubspac
 Ready-to-import templates live in [`workflows/`](./workflows/):
 
 - **[Enrich a Single Domain](./workflows/01-enrich-single-domain.json)** — starter / smoke test. Use this first to verify install + credential.
-- **[Filter Companies by Quality Score](./workflows/02-filter-by-quality-score.json)** — iterate a domain list, enrich each, filter by `quality_score >= 60`. Drop in Clay / Apollo / Sheets list sources.
+- **[Filter Active-Hiring Companies for Outbound](./workflows/02-filter-active-hiring-companies.json)** — iterate a domain list, enrich each, filter by `hiring_actively == true AND total_jobs >= 5`. Drop in Clay / Apollo / Sheets list sources.
 
 More on the way:
 - **HubSpot lifecycle sync** — trigger on new company, enrich, write scores back to contact properties
 - **Apollo + Subspace** — firmographic + operational filter; skip companies with `ghost_job_rate > 60`
-- **Watchlist distress alerts** — daily re-check of CRM accounts, Slack on `hiring_verdict` change
+- **Watchlist distress alerts** — daily re-check of CRM accounts, Slack on `operating_status` change
 
 Templates also published on [n8n.io/workflows](https://n8n.io/workflows) — search "Subspace".
 

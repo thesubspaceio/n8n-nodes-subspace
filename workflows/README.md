@@ -17,52 +17,66 @@ Ready-to-import n8n workflows that demonstrate the Subspace node. Import any of 
 
 Manual trigger → Subspace (Enrich by Domain).
 
-**What it does:** Returns 88+ operational fields for `stripe.com`. Replace the domain with any company you want to inspect.
+**What it does:** Returns operational signals for `stripe.com`. Replace the domain with any company you want to inspect.
 
 **Use this to:** verify your install + credential are working before building anything real.
 
 ---
 
-### 2. [Filter Companies by Quality Score](./02-filter-by-quality-score.json) — *sales / lead-ops*
+### 2. [Filter Active-Hiring Companies for Outbound](./02-filter-active-hiring-companies.json) — *sales / lead-ops*
 
-Manual trigger → sample domain list (5 companies) → Subspace enrich → IF `quality_score >= 60`.
+Manual trigger → sample domain list (5 companies) → Subspace enrich → IF (`hiring_actively == true` AND `total_jobs >= 5`).
 
-**What it does:** Iterates a list of company domains, enriches each, then filters out anything below a quality-score threshold so you don't waste outbound effort on operationally-weak companies.
+**What it does:** Iterates a list of company domains, enriches each, then filters out companies that aren't actively hiring or have fewer than 5 open roles. Saves outbound effort on operationally-quiet companies.
 
 **Use this to:** clean a list before pushing to Clay, Apollo, Outreach, HubSpot, or your CRM. Swap the Code node at the start with your actual list source (Google Sheets, Apollo export, Clay webhook, etc.).
 
-**Common threshold tweaks:**
-- `ghost_job_rate <= 30` — skip ghost-heavy companies
-- `hiring_actively == true` — only actively hiring
-- `it_infrastructure_tier == 'Enterprise'` — target enterprise stack
-- `cdn_enterprise == true` — only enterprise infrastructure
+**Common filter swaps (all real fields):**
+- `operating_status == 'active'` — DNS resolves + signals present
+- `confidence == 'high'` — high-evidence enrichment only
+- `has_compliance_program == true` — SOC2 / HIPAA / trust center detected
+- `has_enterprise_sso == true` — Okta / Azure AD detected
+- `cdn_enterprise == true` — enterprise infrastructure
+- `recent_funding == true` — funding signal in recent filings
+- `is_spending_on_ads == true` — active demand-gen
+- Combine with AND/OR by adding conditions to the IF node.
 
 ---
 
 ## Coming next
 
-These four are scaffolded in our roadmap and arriving over the next few weeks:
+These four are scaffolded in our roadmap:
 
-- **HubSpot lifecycle sync** — new company → Subspace enrich → write scores back as contact properties.
-- **Salesforce daily re-check** — daily watchlist scan, Slack alert on `hiring_verdict` change.
+- **HubSpot lifecycle sync** — new company → Subspace enrich → write fields back as contact properties.
+- **Salesforce daily re-check** — daily watchlist scan, Slack alert on `operating_status` change.
 - **Clay → Subspace → CRM** — full enrichment loop with Clay as the list source.
-- **Weekly distress digest** — top-10 declining accounts emailed to your team every Monday.
+- **Weekly digest** — summarize your watchlist's top operational changes every Monday.
 
 If there's a workflow you want, [open an issue](https://github.com/thesubspaceio/n8n-nodes-subspace/issues).
 
 ## Field reference
 
-The full output schema (all 88+ fields) is documented at [thesubspace.io/docs/api](https://www.thesubspace.io/docs/api). Quick-reference for the fields used in these templates:
+The full output schema is documented at [thesubspace.io/docs/api](https://www.thesubspace.io/docs/api). Below are the fields used in these templates — all verified against the live `/api/v1/enrich` response shape.
 
-| Field | Type | Range / values |
+| Field | Type | Values |
 |---|---|---|
-| `quality_score` | number | 0–100 (overall operational health) |
-| `hiring_verdict` | string | `Healthy`, `Slowing`, `Frozen`, `Distressed` |
-| `hiring_actively` | boolean | true if active jobs detected |
-| `ghost_job_rate` | number | 0–100 (% of jobs flagged as stale) |
-| `it_infrastructure_tier` | string | `Enterprise`, `Mid-market`, `SMB`, `Hobbyist` |
+| `domain` | string | apex domain |
+| `company_name` | string \| null | inferred company name |
+| `operating_status` | string | `active`, `slow`, `inactive` |
+| `ats_provider` | string \| null | `greenhouse`, `workday`, `lever`, `ashby`, etc. |
+| `total_jobs` | number | open roles count |
+| `fresh_jobs_30d` | number | roles posted in last 30 days |
+| `hiring_actively` | boolean | `true` if active jobs detected |
+| `confidence` | string | `high`, `moderate`, `low` |
 | `cdn_enterprise` | boolean | enterprise CDN detected (Cloudflare Enterprise, Akamai, Fastly) |
+| `waf_active` | boolean | web application firewall detected |
+| `dmarc_enforcing` | boolean | DMARC policy enforced |
 | `has_enterprise_sso` | boolean | Okta or Azure AD SSO detected |
+| `has_compliance_program` | boolean | SOC2 / HIPAA / trust center detected |
+| `is_spending_on_ads` | boolean | active ad spend signals (Google / Meta tags + tracking) |
+| `recent_funding` | boolean | funding signal in recent SEC / public filings |
+| `possible_acquisition` | boolean | M&A signal detected |
+| `billing_model` | string | `enterprise_billing`, `saas_payments`, `checkout_detected`, `proprietary`, `none_detected` |
 
 ## Submitting your own
 
