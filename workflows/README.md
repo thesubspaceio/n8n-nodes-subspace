@@ -32,6 +32,10 @@ Manual trigger → sample domain list (5 companies) → Subspace enrich → IF (
 **Use this to:** clean a list before pushing to Clay, Apollo, Outreach, HubSpot, or your CRM. Swap the Code node at the start with your actual list source (Google Sheets, Apollo export, Clay webhook, etc.).
 
 **Common filter swaps (all real fields):**
+- `quality_score >= 60` — composite quality threshold (avg of cost-center scores)
+- `hiring_verdict == 'Healthy'` — categorical verdict from real signals
+- `it_infrastructure_tier == 'Enterprise'` — target enterprise infrastructure
+- `engineering_product_score >= 70` — engineering-strong companies
 - `operating_status == 'active'` — DNS resolves + signals present
 - `confidence == 'high'` — high-evidence enrichment only
 - `has_compliance_program == true` — SOC2 / HIPAA / trust center detected
@@ -68,6 +72,17 @@ The full output schema is documented at [thesubspace.io/docs/api](https://www.th
 | `fresh_jobs_30d` | number | roles posted in last 30 days |
 | `hiring_actively` | boolean | `true` if active jobs detected |
 | `confidence` | string | `high`, `moderate`, `low` |
+| `quality_score` | number \| null | 0–100 composite. Average of available cost-center scores. Null when no cost centers populated. |
+| `hiring_verdict` | string \| null | `Healthy`, `Slowing`, `Distressed`, `Frozen`, `Quiet`, or null on low-confidence data |
+| `it_infrastructure_score` | number \| null | 0–100 weighted-avg of IT-infra signals |
+| `it_infrastructure_tier` | string \| null | `Enterprise` (≥75), `Growth` (≥50), `Startup` (≥25), `Inactive` (<25) |
+| `engineering_product_score` / `_tier` | number / string \| null | same shape — engineering & product pillar |
+| `sales_marketing_score` / `_tier` | number / string \| null | same shape — sales & marketing pillar |
+| `hr_hiring_score` / `_tier` | number / string \| null | same shape — HR & hiring pillar |
+| `legal_compliance_score` / `_tier` | number / string \| null | same shape — legal & compliance pillar |
+| `finance_revops_score` / `_tier` | number / string \| null | same shape — finance & RevOps pillar |
+| `telecom_remote_score` / `_tier` | number / string \| null | same shape — telecom & remote pillar |
+| `corporate_dev_score` / `_tier` | number / string \| null | same shape — corporate development pillar |
 | `cdn_enterprise` | boolean | enterprise CDN detected (Cloudflare Enterprise, Akamai, Fastly) |
 | `waf_active` | boolean | web application firewall detected |
 | `dmarc_enforcing` | boolean | DMARC policy enforced |
