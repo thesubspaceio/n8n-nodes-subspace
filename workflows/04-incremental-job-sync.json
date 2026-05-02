@@ -1,0 +1,73 @@
+{
+  "name": "Subspace — Incremental Job Feed (recurring poll)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "field": "hours", "hoursInterval": 1 }
+          ]
+        }
+      },
+      "id": "8b3a1d22-1e0c-4a11-b73a-90e5d2c8f0a1",
+      "name": "Every Hour",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [200, 300],
+      "notes": "Runs hourly. Adjust to your latency tolerance — every 15 min, every 6h, daily, etc."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1d4a2c3e-5b67-4c8a-9d11-aa2b3c4d5e6f",
+              "name": "domain",
+              "value": "stripe.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9e0a3b3f-91d5-4d11-83cb-3a7f0a2c9d10",
+      "name": "Set Domain",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [420, 300],
+      "notes": "Single domain per run. To poll multiple domains, replace this Set with a Code node that emits one item per domain — the rest of the workflow runs once per item automatically."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Incremental sync via jobs_seen_after. We persist the last sync\n// timestamp in n8n's static workflow data — keyed by domain so multiple\n// domains can share this template.\n//\n// First run: jobs_seen_after is unset → returns the most recent jobs\n// (capped by jobs_limit). Subsequent runs only emit jobs whose\n// first_seen_at is at or after the last successful sync time.\n\nconst { domain } = $input.first().json;\nconst apiKey = $env.SUBSPACE_API_KEY;\nif (!apiKey) {\n  throw new Error(\"Missing API key. Set SUBSPACE_API_KEY in your n8n environment, or hard-code the key in this Code node.\");\n}\n\n// Load last-sync per domain from workflow static data\nconst staticData = $getWorkflowStaticData('global');\nstaticData.lastSeenByDomain ??= {};\nconst lastSeen = staticData.lastSeenByDomain[domain] || null;\n\nconst url = new URL('https://www.thesubspace.io/api/v1/enrich');\nurl.searchParams.set('domain', domain);\nurl.searchParams.set('include', 'jobs');\nurl.searchParams.set('jobs_limit', '500'); // cap per run; if you need more, paginate via offset\nif (lastSeen) {\n  url.searchParams.set('jobs_seen_after', lastSeen);\n}\n\nconst res = await this.helpers.httpRequest({\n  method: 'GET',\n  url: url.toString(),\n  headers: { 'x-api-key': apiKey },\n  json: true,\n});\n\nconst jobs = res.jobs || [];\n\n// Update high-water mark to NOW (rather than max(first_seen_at)) so\n// we don't double-emit if upstream backfills late. Trade-off: a job\n// added at 12:00:01 right after a 12:00:00 poll waits for the next tick.\nstaticData.lastSeenByDomain[domain] = new Date().toISOString();\n\nreturn jobs.map(j => ({ json: { ...j, company_domain: domain, sync_at: staticData.lastSeenByDomain[domain] } }));"
+      },
+      "id": "3a4b5c6d-7e8f-9012-3456-789abcdef012",
+      "name": "Sync New Jobs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [640, 300],
+      "notes": "First run: pulls up to 500 most recent jobs (jobs_seen_after unset). Subsequent runs: only emits jobs first_seen_at >= last sync time.\n\nState lives in workflow static data ($getWorkflowStaticData('global').lastSeenByDomain). Survives workflow restarts. Reset by editing the Code node to clear it.\n\nAuth: set SUBSPACE_API_KEY in n8n env, or hard-code in the code.\n\nIf a domain has more than 500 new jobs in one polling interval, this misses the tail — increase poll frequency or add an offset loop (see template 03)."
+    }
+  ],
+  "connections": {
+    "Every Hour": {
+      "main": [[{ "node": "Set Domain", "type": "main", "index": 0 }]]
+    },
+    "Set Domain": {
+      "main": [[{ "node": "Sync New Jobs", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": [
+    { "name": "subspace" },
+    { "name": "job-feed" },
+    { "name": "incremental" },
+    { "name": "scheduled" }
+  ]
+}

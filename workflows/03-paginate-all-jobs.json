@@ -1,0 +1,71 @@
+{
+  "name": "Subspace — Paginate All Job Listings for a Domain",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a1d4f17b-1a3a-4a2b-9c64-1e5e0c5d4f01",
+      "name": "When clicking 'Test workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9e0a3b3f-91d5-4d11-83cb-3a7f0a2c9d10",
+              "name": "domain",
+              "value": "stripe.com",
+              "type": "string"
+            },
+            {
+              "id": "f4a2b1c8-7c63-4d22-8b91-aa1d2e3f4567",
+              "name": "page_size",
+              "value": 100,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9c7b5c2d-1b87-4d23-aa42-44b9e80b8d11",
+      "name": "Set Inputs",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [420, 300],
+      "notes": "Edit `domain` to target any company.\n\n`page_size`: how many jobs per request (max 500). 100 is a safe default."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Paginate every job for the input domain via /api/v1/enrich.\n//\n// Why a Code node? n8n's HTTP Request + IF native loop is fragile when\n// branches share item context. Doing the loop inside JS keeps the\n// template readable and reliable. The pattern below is exactly what a\n// downstream worker would do — copy-paste-friendly.\n//\n// Auth: reads `SUBSPACE_API_KEY` from your n8n instance environment.\n// Set it on n8n via env var, or replace the line below with your\n// literal key (`const apiKey = 'sk_live_…'`).\n\nconst { domain, page_size } = $input.first().json;\nconst limit = Math.min(500, Math.max(1, Number(page_size) || 100));\nconst apiKey = $env.SUBSPACE_API_KEY;\n\nif (!apiKey) {\n  throw new Error(\"Missing API key. Set SUBSPACE_API_KEY in your n8n environment, or hard-code the key in this Code node.\");\n}\n\nconst all = [];\nlet offset = 0;\nlet pages = 0;\nconst MAX_PAGES = 50; // safety cap — 50 × 500 = 25,000 jobs\n\nwhile (pages < MAX_PAGES) {\n  const url = new URL('https://www.thesubspace.io/api/v1/enrich');\n  url.searchParams.set('domain', domain);\n  url.searchParams.set('include', 'jobs');\n  url.searchParams.set('jobs_limit', String(limit));\n  url.searchParams.set('jobs_offset', String(offset));\n\n  const res = await this.helpers.httpRequest({\n    method: 'GET',\n    url: url.toString(),\n    headers: { 'x-api-key': apiKey },\n    json: true,\n  });\n\n  for (const job of (res.jobs || [])) {\n    all.push({ ...job, company_domain: domain });\n  }\n\n  pages += 1;\n  if (!res.jobs_has_more || res.jobs_next_offset == null) break;\n  offset = res.jobs_next_offset;\n}\n\nreturn all.map(j => ({ json: j }));"
+      },
+      "id": "2c4e1f8d-7b3a-4c91-9e1a-3d8b5c7f0a44",
+      "name": "Paginate Jobs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [640, 300],
+      "notes": "Walks every page using jobs_next_offset until jobs_has_more is false. Emits one item per job (title, location, url, company_domain).\n\nAuth: set SUBSPACE_API_KEY in your n8n environment (Settings → Environment variables) before running. Or replace `$env.SUBSPACE_API_KEY` in the code with your literal key.\n\nMAX_PAGES safety cap: 50 pages × 500 = 25,000 jobs. Bump if a target domain has more."
+    }
+  ],
+  "connections": {
+    "When clicking 'Test workflow'": {
+      "main": [[{ "node": "Set Inputs", "type": "main", "index": 0 }]]
+    },
+    "Set Inputs": {
+      "main": [[{ "node": "Paginate Jobs", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": [
+    { "name": "subspace" },
+    { "name": "job-feed" },
+    { "name": "pagination" }
+  ]
+}
