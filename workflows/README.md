@@ -47,6 +47,34 @@ Manual trigger → sample domain list (5 companies) → Subspace enrich → IF (
 
 ---
 
+### 3. [Paginate All Job Listings for a Domain](./03-paginate-all-jobs.json) — *job feed / bulk export*
+
+Manual trigger → Set domain + page size → Code node that walks every page via `jobs_next_offset` until `jobs_has_more` is false. Emits one item per job (title, location, url, company_domain).
+
+**What it does:** Returns every job listing Subspace has indexed for a domain by following the pagination cursor. Demonstrates the new `jobs_limit` / `jobs_offset` / `jobs_has_more` / `jobs_next_offset` contract on `/api/v1/enrich`.
+
+**Use this to:** build a one-time bulk export for a single company — push to Google Sheets, write to Postgres, dump to S3, feed into Clay's job-row table. Swap the trailing emit step with whatever destination you need.
+
+> **Why a Code node and not the Subspace verified node?** The verified node currently routes only `domain` to `/api/v1/enrich`. Pagination params (`jobs_limit`, `jobs_offset`, `jobs_seen_after`) are part of the API today but ship to the verified node in v2 (in review with the n8n hub). Until then, the Code node hits the same endpoint with the same key — same data, just a different transport. The pattern collapses to a single node-config change once v2 lands.
+
+**Auth:** set `SUBSPACE_API_KEY` in your n8n environment (Settings → Environment variables) before running, or replace the `$env.SUBSPACE_API_KEY` line in the Code node with your literal key.
+
+---
+
+### 4. [Incremental Job Feed (recurring poll)](./04-incremental-job-sync.json) — *real-time hiring intel*
+
+Schedule trigger (hourly) → Set domain → Code node that uses `jobs_seen_after` to fetch only jobs added since the last successful run. Persists the high-water mark in n8n workflow static data.
+
+**What it does:** Polls Subspace on a recurring interval and emits only newly-observed jobs. The first run pulls up to 500 most recent listings; subsequent runs pass `jobs_seen_after=<last_sync_time>` so you never re-process the same listing.
+
+**Use this to:** drive a Slack alert on every new role, push new jobs into a CRM as soon as they're detected, build a real-time competitive hiring monitor for a watchlist of companies. To watch multiple companies, replace the Set node with a Code node that emits one item per domain — the rest of the workflow runs once per item automatically.
+
+**State:** `$getWorkflowStaticData('global').lastSeenByDomain[domain]` holds the high-water timestamp. Survives workflow restarts. To reset, clear that key in a one-off Code node run.
+
+**Auth:** same as template 3 (set `SUBSPACE_API_KEY` in n8n env or hard-code).
+
+---
+
 ## Coming next
 
 These four are scaffolded in our roadmap:
